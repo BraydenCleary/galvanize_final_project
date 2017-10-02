@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 import requests
-import pdb
 import re
 import json
 import threading
@@ -16,11 +15,12 @@ class HipCampScraper(object):
 
   def __init__(self, campground_ids_to_scrape=range(1, 80000), write_mode=False, campgrounds_file_name='./campgrounds_2.csv', reviews_file_name='./reviews_2.csv', log_file_name='./scrape.log'):
     print('write mode ON' if write_mode else 'write mode OFF')
-    self.campgrounds_file_name = campgrounds_file_name
-    self.reviews_file_name = reviews_file_name
-    self.log_file_name = log_file_name
+
+    self.campgrounds_file_name    = campgrounds_file_name
+    self.reviews_file_name        = reviews_file_name
+    self.log_file_name            = log_file_name
     self.campground_ids_to_scrape = campground_ids_to_scrape
-    self.write_mode = write_mode
+    self.write_mode               = write_mode
     self._scrape()
 
   def _scrape(self):
@@ -48,7 +48,6 @@ class HipCampScraper(object):
         else:
           self._log('{}, not found, campground id not found'.format(campground_id))
 
-        
       except:
         self._log('{}, failed, initial campground fetch'.format(campground_id))
         continue
@@ -59,28 +58,29 @@ class HipCampScraper(object):
           
   def _scrape_campground(self, campground_id, campground_path):
     full_campground_html = requests.get(self.BASE_URL + campground_path, headers=self.REQUEST_HEADERS).text
+    
     soup = BeautifulSoup(full_campground_html, "lxml")
 
-    final_campground_data = {}
-    final_campground_data['campground_id'] = str(campground_id)
-    final_campground_data['title'] = self._find_title(soup)
-    final_campground_data['recommend_rate'] = self._find_recommend_rate(soup)
-    final_campground_data['count_of_recommendations'] = self._find_count_of_recommendations(soup)
-    final_campground_data['save_count'] = self._find_save_count(soup)
-    final_campground_data['base_price'] = self._find_base_price(soup)
-    final_campground_data['standard_number_of_guests'] = self._find_standard_number_of_guests(soup)
-    final_campground_data['cost_per_additional_guest'] = self._find_cost_per_additional_guest(soup)
-    final_campground_data['is_verified'] = self._find_verified_status(soup)
-    final_campground_data['host_description'] = self._find_host_description(soup)
-    final_campground_data['elevation'] = self._find_elevation(soup)
+    final_campground_data                               = {}
+    final_campground_data['campground_id']              = str(campground_id)
+    final_campground_data['title']                      = self._find_title(soup)
+    final_campground_data['recommend_rate']             = self._find_recommend_rate(soup)
+    final_campground_data['count_of_recommendations']   = self._find_count_of_recommendations(soup)
+    final_campground_data['save_count']                 = self._find_save_count(soup)
+    final_campground_data['base_price']                 = self._find_base_price(soup)
+    final_campground_data['standard_number_of_guests']  = self._find_standard_number_of_guests(soup)
+    final_campground_data['cost_per_additional_guest']  = self._find_cost_per_additional_guest(soup)
+    final_campground_data['is_verified']                = self._find_verified_status(soup)
+    final_campground_data['host_description']           = self._find_host_description(soup)
+    final_campground_data['elevation']                  = self._find_elevation(soup)
 
-    amenities = self._find_amenities(soup)
-    details = self._find_details(soup)
-    other_features = self._find_other_features(soup)
-    activities = self._find_activities(soup)
+    amenities       = self._find_amenities(soup)
+    details         = self._find_details(soup)
+    other_features  = self._find_other_features(soup)
+    activities      = self._find_activities(soup)
 
-    hipcamp_campground_data_off_window = self._fetch_campground_data_off_window(soup)
-    hipcamp_park_data_off_window  = self._fetch_park_data_off_window(soup)
+    hipcamp_campground_data_off_window  = self._fetch_campground_data_off_window(soup)
+    hipcamp_park_data_off_window        = self._fetch_park_data_off_window(soup)
 
     final_campground_data.update(amenities)
     final_campground_data.update(details)
@@ -119,7 +119,8 @@ class HipCampScraper(object):
     if reviews.get('tips', None):
       for review in reviews['tips']:
         review['campground_id'] = campground_id
-        review['review_id'] = review['id']
+        review['review_id']     = review['id']
+        
         review_fields = []
         for column in self.REVIEW_COLUMNS:
           val = review.get(column, '')
@@ -277,7 +278,7 @@ class HipCampScraper(object):
     return recommend_rate 
 
 threads = []
-start_id, end_id, thread_count = [1, 80000, 15]
+start_id, end_id, thread_count = [1, 20000, 10]
 campground_ids_for_threads_to_scrape = np.array_split(range(start_id, end_id), thread_count)
 for ids in campground_ids_for_threads_to_scrape:
     t = threading.Thread(target=HipCampScraper, kwargs={'campground_ids_to_scrape': ids, 'write_mode': True})
